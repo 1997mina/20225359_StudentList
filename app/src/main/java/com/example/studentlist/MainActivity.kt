@@ -38,7 +38,6 @@ class MainActivity : AppCompatActivity() {
         adapter = StudentAdapter(this, studentList)
         lvStudents.adapter = adapter
 
-        // Xử lý sự kiện thêm sinh viên
         btnAdd.setOnClickListener {
             addStudent()
         }
