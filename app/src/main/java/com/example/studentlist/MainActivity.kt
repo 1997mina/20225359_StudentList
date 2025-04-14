@@ -1,20 +1,20 @@
 package com.example.studentlist
 
+import StudentAdapter
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
 import android.widget.*
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 
 class MainActivity : AppCompatActivity() {
-    private lateinit var Name: EditText
-    private lateinit var MSSV: EditText
+    private lateinit var name: EditText
+    private lateinit var mssv: EditText
     private lateinit var btnAdd: Button
-    private lateinit var lvStudents: ListView
+    private lateinit var rvStudents: RecyclerView
     private var studentList = mutableListOf<Student>()
     private lateinit var adapter: StudentAdapter
 
@@ -29,56 +29,39 @@ class MainActivity : AppCompatActivity() {
             insets
         }
 
-        Name = findViewById(R.id.etName)
-        MSSV = findViewById(R.id.etMSSV)
+        name = findViewById(R.id.etName)
+        mssv = findViewById(R.id.etMSSV)
         btnAdd = findViewById(R.id.btnAdd)
-        lvStudents = findViewById(R.id.lvStudents)
+        rvStudents = findViewById(R.id.rvStudents)
 
-        studentList = mutableListOf()
-        adapter = StudentAdapter(this, studentList)
-        lvStudents.adapter = adapter
+        rvStudents.layoutManager = LinearLayoutManager(this)
+        adapter = StudentAdapter(studentList) { position ->
+            studentList.removeAt(position)
+            adapter.notifyItemRemoved(position)
+            adapter.notifyItemRangeChanged(position, studentList.size - position)
+        }
+        rvStudents.adapter = adapter
 
-        // Xử lý sự kiện thêm sinh viên
         btnAdd.setOnClickListener {
             addStudent()
         }
     }
 
     private fun addStudent() {
-        val name = Name.text.toString()
-        val mssv = MSSV.text.toString()
+        val studentName = name.text.toString()
+        val studentId = mssv.text.toString()
 
-        if (name.isEmpty() || mssv.isEmpty()) {
+        if (studentName.isEmpty() || studentId.isEmpty()) {
             Toast.makeText(this, "Vui lòng nhập đủ thông tin", Toast.LENGTH_SHORT).show()
             return
         }
 
-        studentList.add(0, Student(name, mssv))
-        adapter.notifyDataSetChanged()
+        studentList.add(0, Student(studentName, studentId))
+        adapter.notifyItemInserted(0)
+        rvStudents.scrollToPosition(0)
 
-        Name.text.clear()
-        MSSV.text.clear()
-    }
-
-    inner class StudentAdapter(
-        context: android.content.Context,
-        private val students: MutableList<Student>
-    ) : ArrayAdapter<Student>(context, 0, students) {
-
-        override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
-            val view = convertView ?: LayoutInflater.from(context).inflate(R.layout.item_student, parent, false)
-
-            val student = students[position]
-            view.findViewById<TextView>(R.id.tvName).text = student.name
-            view.findViewById<TextView>(R.id.tvMSSV).text = student.mssv
-
-            view.findViewById<Button>(R.id.btnDelete).setOnClickListener {
-                students.removeAt(position)
-                notifyDataSetChanged()
-            }
-
-            return view
-        }
+        name.text.clear()
+        mssv.text.clear()
     }
 
     data class Student(val name: String, val mssv: String)
